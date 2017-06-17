@@ -52,6 +52,8 @@ ifeq ($(PLATFORM),HOST)
 	DEPS = $(SRCS_H:.c=.dep)
 	LD = $(INCLUDES_H)
 	SIZE = size -Atd
+	OBJDMP = objdump --disassemble 
+
 
 else
 	CC = arm-none-eabi-gcc
@@ -63,15 +65,18 @@ else
 	DEPS = $(SRCS:.c=.dep)
 	LD = $(INCLUDES)
 	SIZE = arm-none-eabi-size -Atd
+	OBJDMP = arm-none-eabi-objdump --disassemble
 
 endif
 
 %.i : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LD) -E $< -o $@
 
-%.asm : %.c 
+%.asm : %.c %.dump
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LD) -S $< -o $@
 
+%.dump : %.o 
+	$(OBJDMP) $< > $@ 
 
 %.o : %.c 
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LD) -c $< -o $@ 
@@ -81,7 +86,7 @@ endif
 
 .PHONY : compile-all build clean
 
-compile-all : $(OBJS)
+compile-all : $(OBJS) $(DEPS)
 
 build : $(TARGET).out
 	$(SIZE) $(TARGET).out
