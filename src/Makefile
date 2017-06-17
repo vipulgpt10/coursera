@@ -48,8 +48,10 @@ ifeq ($(PLATFORM),HOST)
 	CFLAGS = -Wall -Werror -g -O0 -std=c99
 	CPPFLAGS = -DHOST
 	LDFLAGS = -Wl,-Map=$(TARGET).map
-	OBJS = $(SRCS_H:.c=.o) 
+	OBJS = $(SRCS_H:.c=.o)
+	DEPS = $(SRCS_H:.c=.dep)
 	LD = $(INCLUDES_H)
+	SIZE = size -Atd
 
 else
 	CC = arm-none-eabi-gcc
@@ -58,7 +60,9 @@ else
 	CPPFLAGS = -DMSP432
 	LDFLAGS = -Wl,-Map=$(TARGET).map -T $(LINKER_FILE)
 	OBJS = $(SRCS:.c=.o)
+	DEPS = $(SRCS:.c=.dep)
 	LD = $(INCLUDES)
+	SIZE = arm-none-eabi-size -Atd
 
 endif
 
@@ -72,14 +76,18 @@ endif
 %.o : %.c 
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LD) -c $< -o $@ 
 
+%.dep : %.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LD) -M $< -o $@ 
+
 .PHONY : compile-all build clean
 
 compile-all : $(OBJS)
 
 build : $(TARGET).out
+	$(SIZE) $(TARGET).out
 	
-$(TARGET).out : $(OBJS)
-	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $^ -o $@
+$(TARGET).out : $(OBJS) $(DEPS)
+	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(OBJS) -o $@
 
 clean:
-	rm -f $(OBJS) $(TARGET).out *.asm *.i $(TARGET).map
+	rm -f *.o $(TARGET).out *.asm *.i $(TARGET).map *.dep

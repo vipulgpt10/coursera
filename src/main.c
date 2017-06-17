@@ -48,8 +48,8 @@ int main(void) {
   for ( i = 0; i < MAX_LENGTH; i++ ){
     printf("%c", buffer[i]);
   }
-  printf("\n")
-;
+  printf("\n");
+
   return 0;
 }
 
