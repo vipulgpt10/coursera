@@ -95,4 +95,4 @@ $(TARGET).out : $(OBJS) $(DEPS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(OBJS) -o $@
 
 clean:
-	rm -f *.o $(TARGET).out *.asm *.i $(TARGET).map *.dep
+	rm -f *.o $(TARGET).out *.asm *.i $(TARGET).map *.dep *.dump
