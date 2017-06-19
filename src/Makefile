@@ -49,7 +49,7 @@ ifeq ($(PLATFORM),HOST)
 	CPPFLAGS = -DHOST
 	LDFLAGS = -Wl,-Map=$(TARGET).map
 	OBJS = $(SRCS_H:.c=.o)
-	DEPS = $(SRCS_H:.c=.dep)
+	DEPS = $(SRCS_H:.c=.d)
 	LD = $(INCLUDES_H)
 	SIZE = size -Atd
 	OBJDMP = objdump --disassemble 
@@ -62,26 +62,26 @@ else
 	CPPFLAGS = -DMSP432
 	LDFLAGS = -Wl,-Map=$(TARGET).map -T $(LINKER_FILE)
 	OBJS = $(SRCS:.c=.o)
-	DEPS = $(SRCS:.c=.dep)
+	DEPS = $(SRCS:.c=.d)
 	LD = $(INCLUDES)
 	SIZE = arm-none-eabi-size -Atd
 	OBJDMP = arm-none-eabi-objdump --disassemble
 
 endif
 
-%.i : %.c
+%.i : %.c %.d
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LD) -E $< -o $@
 
-%.asm : %.c %.dump
+%.asm : %.c %.d %.dump
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LD) -S $< -o $@
+	
+%.asm : %.o
+	$(OBJDMP) -S $< > $@
 
-%.dump : %.o 
-	$(OBJDMP) $< > $@ 
-
-%.o : %.c 
+%.o : %.c %.d
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LD) -c $< -o $@ 
 
-%.dep : %.c
+%.d : %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LD) -M $< -o $@ 
 
 .PHONY : compile-all build clean
@@ -95,4 +95,4 @@ $(TARGET).out : $(OBJS) $(DEPS)
 	$(CC) $(CFLAGS) $(CPPFLAGS) $(LDFLAGS) $(OBJS) -o $@
 
 clean:
-	rm -f *.o $(TARGET).out *.asm *.i $(TARGET).map *.dep *.dump
+	rm -f *.o $(TARGET).out *.asm *.i $(TARGET).map *.d *.dump
